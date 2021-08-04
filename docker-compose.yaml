@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  mongo:
+    image: mongo:latest
+    volumes: 
+      - ./mongo_data:/data/db
+    ports:
+      - "27018:27017"
+    networks:
+      - my-net
+    command: mongod
+
+  svc:
+    build: ./app/backend/
+    restart: always
+    volumes: 
+      - ./service_conf/default.yaml:/service/config/default.yaml
+    ports:
+      - "9007:9007"
+    networks:
+      - my-net
+    depends_on: 
+      - mongo
+
+  web:
+    image: nginx:latest
+    restart: always
+    volumes: 
+      - ./nginx_conf/default.conf:/etc/nginx/conf.d/default.conf
+      - ./app/frontend:/var/www
+    ports:
+    - "80:80"
+    networks:
+      - my-net
+    depends_on: 
+      - svc
+
+networks:
+  my-net:
+    driver: bridge
